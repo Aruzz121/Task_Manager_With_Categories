@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archivero de Tareas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF1F6;
+    --ink:#17213B;
+    --ink-soft:#48547A;
+    --card:#FFFFFF;
+    --coral:#FF6B6B;
+    --line:#D7DCE8;
+    --shadow: 0 2px 0 rgba(23,33,59,0.06), 0 10px 24px -14px rgba(23,33,59,0.25);
+
+    --cat-1:#2EC4B6; /* teal */
+    --cat-2:#FFB627; /* amber */
+    --cat-3:#8E7DBE; /* violet */
+    --cat-4:#FF6B6B; /* coral */
+    --cat-5:#4EA8DE; /* sky */
+    --cat-6:#6BA368; /* moss */
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(1200px 600px at 90% -10%, rgba(255,107,107,0.08), transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:48px 24px 80px;
+  }
+
+  .wrap{ max-width:760px; margin:0 auto; }
+
+  /* ---- Encabezado tipo pestaña de carpeta ---- */
+  header{ margin-bottom:36px; }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:clamp(32px, 5vw, 44px);
+    line-height:1.05;
+    margin:14px 0 6px;
+    background:var(--card);
+    padding:20px 24px 24px;
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--line);
+  }
+  .subtitle{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0;
+    font-weight:500;
+  }
+
+  /* ---- Barra de filtros: como una etiqueta de gaveta ---- */
+  .filters{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:28px 0 20px;
+    align-items:center;
+  }
+  .filters label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin-right:4px;
+  }
+  select{
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink);
+    background:var(--card);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 12px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  select:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
+
+  /* ---- Formulario nueva tarea ---- */
+  .new-entry{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:18px 20px;
+    margin-bottom:32px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .new-entry input[type=text]{
+    flex:1 1 220px;
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .new-entry input[type=text]:focus-visible{ outline:2px solid var(--coral); outline-offset:1px; }
+  .new-entry select{ flex:0 0 auto; }
+  .btn{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:#fff;
+    background:var(--coral);
+    border:none;
+    border-radius:8px;
+    padding:10px 18px;
+    cursor:pointer;
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+    box-shadow:0 4px 0 #E14F4F;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn:active{ transform:translateY(2px); box-shadow:0 2px 0 #E14F4F; }
+  .btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+
+  .btn-ghost{
+    background:var(--paper);
+    color:var(--ink);
+    box-shadow:none;
+    border:1.5px dashed var(--line);
+  }
+  .btn-ghost:hover{ border-color:var(--coral); color:var(--coral); }
+  .btn-ghost:active{ transform:none; }
+
+  /* ---- Ledger de tareas ---- */
+  .ledger{ display:flex; flex-direction:column; gap:10px; }
+
+  .row{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px 14px 20px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .row::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:6px;
+    background:var(--tab-color, var(--ink-soft));
+  }
+
+  .check{
+    flex:0 0 auto;
+    width:22px; height:22px;
+    border-radius:6px;
+    border:2px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color:transparent;
+    transition:all .15s ease;
+  }
+  .check svg{ width:13px; height:13px; }
+  .row.done .check{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  .check:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
+
+  .row-body{ flex:1 1 auto; min-width:0; }
+  .row-title{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15.5px;
+    margin:0 0 4px;
+    word-break:break-word;
+  }
+  .row.done .row-title{ text-decoration:line-through; color:var(--ink-soft); }
+
+  .row-desc{
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+    word-break:break-word;
+  }
+  .row.done .row-desc{ text-decoration:line-through; }
+
+  .row-meta{
+    display:flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+  }
+  .cat-chip{
+    display:inline-flex; align-items:center; gap:5px;
+    padding:2px 8px 3px;
+    border-radius:999px;
+    background:color-mix(in srgb, var(--tab-color, var(--ink-soft)) 16%, white);
+    color:var(--tab-color, var(--ink-soft));
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  .cat-chip::before{
+    content:"";
+    width:6px; height:6px; border-radius:50%;
+    background:var(--tab-color, var(--ink-soft));
+  }
+
+  /* ---- Sello de estado ---- */
+  .stamp{
+    flex:0 0 auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    padding:4px 9px;
+    border:1.5px solid var(--coral);
+    color:var(--coral);
+    border-radius:5px;
+    transform:rotate(-4deg);
+    text-transform:uppercase;
+    user-select:none;
+  }
+  .row.done .stamp{
+    border-color:#5C8A5C;
+    color:#5C8A5C;
+  }
+
+  .del{
+    flex:0 0 auto;
+    width:28px; height:28px;
+    border-radius:7px;
+    border:1.5px solid transparent;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s ease;
+  }
+  .del:hover{ color:var(--coral); border-color:var(--line); background:var(--paper); }
+  .del:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
+
+  .empty{
+    text-align:center;
+    padding:48px 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .empty strong{ display:block; font-family:'Fraunces', serif; font-size:19px; color:var(--ink); margin-bottom:6px; font-weight:600; }
+
+  .edit-btn{
+    flex:0 0 auto;
+    width:28px; height:28px;
+    border-radius:7px;
+    border:1.5px solid transparent;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s ease;
+  }
+  .edit-btn:hover{ color:var(--ink); border-color:var(--line); background:var(--paper); }
+  .edit-btn:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
+
+  .overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(23,33,59,0.45);
+    align-items:center; justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:var(--card);
+    border-radius:14px;
+    padding:24px;
+    width:100%;
+    max-width:360px;
+    box-shadow:0 20px 50px -12px rgba(23,33,59,0.4);
+    border:1px solid var(--line);
+  }
+  .modal h2{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    margin:0 0 16px;
+  }
+  .modal label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .modal input[type=text], .modal select{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    background:var(--paper);
+    color:var(--ink);
+    margin-bottom:16px;
+  }
+  .modal-actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .btn-cancel{
+    background:transparent;
+    color:var(--ink-soft);
+    box-shadow:none;
+    border:1.5px solid var(--line);
+  }
+  .btn-cancel:active{ transform:none; }
+
+  .status-banner{
+    display:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:10px 14px;
+    border-radius:8px;
+    margin-bottom:16px;
+  }
+  .status-banner.show{ display:block; }
+  .status-banner.error{ background:#FDE8E8; color:#B23A3A; border:1px solid #F3B9B9; }
+  .status-banner.ok{ background:#E6F4EA; color:#2E6B3E; border:1px solid #B7DEC2; }
+
+  footer{
+    text-align:center;
+    margin-top:44px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:0.04em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn, .check, .del{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Archivero de Tareas</h1>
+    <p class="subtitle" style="padding:0 24px;">Organiza tus actividades por categoría — igual que fichas en un archivero.</p>
+  </header>
+
+  <div id="banner" class="status-banner"></div>
+
+  <form class="new-entry" id="newForm">
+    <input type="text" id="newTitle" placeholder="Escribe una nueva tarea…" required />
+    <input type="text" id="newDescription" placeholder="Descripción (opcional)…" />
+    <select id="newCategory" required></select>
+    <button type="button" class="btn btn-ghost" id="addCategoryBtn" title="Crear nueva categoría">+ Categoría</button>
+    <button type="submit" class="btn">Agregar</button>
+  </form>
+
+  <div class="filters">
+    <label for="filterCategory">Categoría</label>
+    <select id="filterCategory"><option value="">Todas</option></select>
+    <label for="filterStatus">Estado</label>
+    <select id="filterStatus">
+      <option value="">Todos</option>
+      <option value="0">Pendiente</option>
+      <option value="1">Completado</option>
+    </select>
+  </div>
+
+  <div class="ledger" id="ledger"></div>
+
+  <footer>TASK MANAGER API · http://localhost:5000</footer>
+</div>
+
+<!-- Modal: nueva categoría -->
+<div class="overlay" id="categoryOverlay">
+  <div class="modal">
+    <h2>Nueva categoría</h2>
+    <form id="categoryForm">
+      <label for="categoryNameInput">Nombre</label>
+      <input type="text" id="categoryNameInput" placeholder="Ej. Escuela" required />
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" id="categoryCancel">Cancelar</button>
+        <button type="submit" class="btn">Crear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: editar tarea -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h2>Editar tarea</h2>
+    <form id="editForm">
+      <label for="editTitleInput">Título</label>
+      <input type="text" id="editTitleInput" required />
+      <label for="editDescriptionInput">Descripción</label>
+      <input type="text" id="editDescriptionInput" placeholder="Opcional" />
+      <label for="editCategoryInput">Categoría</label>
+      <select id="editCategoryInput" required></select>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" id="editCancel">Cancelar</button>
+        <button type="submit" class="btn">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:5000/api';
+const CAT_COLORS = ['var(--cat-1)','var(--cat-2)','var(--cat-3)','var(--cat-4)','var(--cat-5)','var(--cat-6)'];
+let categoryColorMap = {};
+let allCategories = [];
+
+const banner = document.getElementById('banner');
+const ledger = document.getElementById('ledger');
+const filterCategory = document.getElementById('filterCategory');
+const filterStatus = document.getElementById('filterStatus');
+const newForm = document.getElementById('newForm');
+const newTitle = document.getElementById('newTitle');
+const newDescription = document.getElementById('newDescription');
+const newCategory = document.getElementById('newCategory');
+
+const addCategoryBtn = document.getElementById('addCategoryBtn');
+const categoryOverlay = document.getElementById('categoryOverlay');
+const categoryForm = document.getElementById('categoryForm');
+const categoryNameInput = document.getElementById('categoryNameInput');
+const categoryCancel = document.getElementById('categoryCancel');
+
+const editOverlay = document.getElementById('editOverlay');
+const editForm = document.getElementById('editForm');
+const editTitleInput = document.getElementById('editTitleInput');
+const editDescriptionInput = document.getElementById('editDescriptionInput');
+const editCategoryInput = document.getElementById('editCategoryInput');
+const editCancel = document.getElementById('editCancel');
+let editingTaskId = null;
+
+function showBanner(msg, type){
+  banner.textContent = msg;
+  banner.className = 'status-banner show ' + type;
+  setTimeout(()=>{ banner.className = 'status-banner'; }, 3500);
+}
+
+function colorFor(catId){
+  if(!(catId in categoryColorMap)){
+    const idx = Object.keys(categoryColorMap).length % CAT_COLORS.length;
+    categoryColorMap[catId] = CAT_COLORS[idx];
+  }
+  return categoryColorMap[catId];
+}
+
+function populateCategorySelects(){
+  filterCategory.innerHTML = '<option value="">Todas</option>' +
+    allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  newCategory.innerHTML = allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  editCategoryInput.innerHTML = allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  allCategories.forEach(c => colorFor(c.id));
+}
+
+async function loadCategories(){
+  try{
+    const res = await fetch(`${API_BASE}/categories`);
+    if(!res.ok) throw new Error();
+    allCategories = await res.json();
+    populateCategorySelects();
+  }catch(e){
+    showBanner('No se pudo conectar con la API. ¿Está corriendo "dotnet run"?', 'error');
+  }
+}
+
+function buildQuery(){
+  const params = new URLSearchParams();
+  if(filterCategory.value) params.set('categoryId', filterCategory.value);
+  if(filterStatus.value !== '') params.set('status', filterStatus.value);
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
+async function loadTasks(){
+  try{
+    const res = await fetch(`${API_BASE}/tasks${buildQuery()}`);
+    if(!res.ok) throw new Error();
+    const tasks = await res.json();
+    renderTasks(tasks);
+  }catch(e){
+    showBanner('No se pudo conectar con la API. ¿Está corriendo "dotnet run"?', 'error');
+  }
+}
+
+function renderTasks(tasks){
+  if(!tasks.length){
+    ledger.innerHTML = `<div class="empty"><strong>No hay tareas aquí</strong>Agrega una desde arriba o cambia los filtros.</div>`;
+    return;
+  }
+
+  // Mapeamos nombre de categoría -> color usando el orden en que aparecieron los filtros
+  const nameToColor = {};
+  Array.from(filterCategory.options).forEach((opt, i) => {
+    if(opt.value) nameToColor[opt.textContent] = colorFor(opt.value);
+  });
+
+  ledger.innerHTML = tasks.map(t => {
+    const done = t.status === 1;
+    const color = nameToColor[t.categoryName] || 'var(--ink-soft)';
+    return `
+      <div class="row ${done ? 'done' : ''}" style="--tab-color:${color}" data-id="${t.id}" data-title="${escapeHtml(t.title)}" data-description="${escapeHtml(t.description || '')}" data-category-name="${escapeHtml(t.categoryName)}">
+        <button class="check" aria-label="Marcar como ${done ? 'pendiente' : 'completada'}">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 12L13 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="row-body">
+          <p class="row-title">${escapeHtml(t.title)}</p>
+          ${t.description ? `<p class="row-desc">${escapeHtml(t.description)}</p>` : ''}
+          <div class="row-meta">
+            <span class="cat-chip" style="--tab-color:${color}">${escapeHtml(t.categoryName)}</span>
+          </div>
+        </div>
+        <span class="stamp">${done ? 'Hecho' : 'Pendiente'}</span>
+        <button class="edit-btn" aria-label="Editar tarea">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11.3 2.3a1.5 1.5 0 012.1 2.1L5 12.8l-3 .9.9-3 8.4-8.4z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="del" aria-label="Eliminar tarea">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6.5 4V2.5h3V4M3.5 4l.6 9a1 1 0 001 1h5.8a1 1 0 001-1l.6-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+
+  ledger.querySelectorAll('.check').forEach(btn=>{
+    btn.addEventListener('click', () => toggleStatus(btn.closest('.row').dataset.id));
+  });
+  ledger.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.addEventListener('click', () => openEditModal(btn.closest('.row')));
+  });
+  ledger.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', () => deleteTask(btn.closest('.row').dataset.id));
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function toggleStatus(id){
+  try{
+    const res = await fetch(`${API_BASE}/tasks/${id}/toggle-status`, { method:'PATCH' });
+    if(!res.ok) throw new Error();
+    loadTasks();
+  }catch(e){
+    showBanner('No se pudo actualizar la tarea.', 'error');
+  }
+}
+
+async function deleteTask(id){
+  try{
+    const res = await fetch(`${API_BASE}/tasks/${id}`, { method:'DELETE' });
+    if(!res.ok) throw new Error();
+    loadTasks();
+  }catch(e){
+    showBanner('No se pudo eliminar la tarea.', 'error');
+  }
+}
+
+newForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const title = newTitle.value.trim();
+  const description = newDescription.value.trim();
+  const categoryId = parseInt(newCategory.value, 10);
+  if(!title || !categoryId) return;
+
+  try{
+    const res = await fetch(`${API_BASE}/tasks`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ title, description: description || null, categoryId })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.message || 'Error al crear la tarea');
+    }
+    newTitle.value = '';
+    newDescription.value = '';
+    showBanner('Tarea agregada.', 'ok');
+    loadTasks();
+  }catch(err){
+    showBanner(err.message, 'error');
+  }
+});
+
+filterCategory.addEventListener('change', loadTasks);
+filterStatus.addEventListener('change', loadTasks);
+
+// ---- Modal: nueva categoría ----
+addCategoryBtn.addEventListener('click', () => {
+  categoryNameInput.value = '';
+  categoryOverlay.classList.add('show');
+  categoryNameInput.focus();
+});
+categoryCancel.addEventListener('click', () => categoryOverlay.classList.remove('show'));
+categoryOverlay.addEventListener('click', (e) => { if(e.target === categoryOverlay) categoryOverlay.classList.remove('show'); });
+
+categoryForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = categoryNameInput.value.trim();
+  if(!name) return;
+  try{
+    const res = await fetch(`${API_BASE}/categories`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.message || 'No se pudo crear la categoría.');
+    }
+    const newCat = await res.json();
+    categoryOverlay.classList.remove('show');
+    await loadCategories();
+    newCategory.value = newCat.id;
+    showBanner('Categoría creada.', 'ok');
+  }catch(err){
+    showBanner(err.message, 'error');
+  }
+});
+
+// ---- Modal: editar tarea ----
+function openEditModal(row){
+  editingTaskId = row.dataset.id;
+  editTitleInput.value = row.dataset.title;
+  editDescriptionInput.value = row.dataset.description || '';
+
+  const currentCat = allCategories.find(c => c.name === row.dataset.categoryName);
+  if(currentCat) editCategoryInput.value = currentCat.id;
+
+  editOverlay.classList.add('show');
+  editTitleInput.focus();
+}
+editCancel.addEventListener('click', () => editOverlay.classList.remove('show'));
+editOverlay.addEventListener('click', (e) => { if(e.target === editOverlay) editOverlay.classList.remove('show'); });
+
+editForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const title = editTitleInput.value.trim();
+  const description = editDescriptionInput.value.trim();
+  const categoryId = parseInt(editCategoryInput.value, 10);
+  if(!title || !categoryId || !editingTaskId) return;
+
+  try{
+    const res = await fetch(`${API_BASE}/tasks/${editingTaskId}`, {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ title, description: description || null, categoryId })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.message || 'No se pudo editar la tarea.');
+    }
+    editOverlay.classList.remove('show');
+    showBanner('Tarea actualizada.', 'ok');
+    loadTasks();
+  }catch(err){
+    showBanner(err.message, 'error');
+  }
+});
+
+(async function init(){
+  await loadCategories();
+  await loadTasks();
+})();
+</script>
+</body>
+</html>
