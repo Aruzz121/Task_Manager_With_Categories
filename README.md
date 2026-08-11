@@ -7,7 +7,7 @@ Team Members:
 * Jesus Eduardo Romero Isiordia
 * Angel Michel Vela Flores
 ----------------------------------------------------
-# Challenge 3 — Task Manager with Categories
+# DESCRIPTION
 
 ## 📌 Scenario
 A to-do application that allows users to organize activities by category. This challenge introduces relational data, DTO mapping, and filtered queries.
