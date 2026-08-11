@@ -43,7 +43,7 @@ Ahí se abre directamente la interfaz visual. Deja la terminal abierta mientras 
 
 ## Probar la API directamente (opcional)
 
-Si quieres ver los endpoints "en crudo" (útil para revisar la estructura de las peticiones), puedes activar Swagger:
+Si deseas ver los endpoints "en crudo", deberás activar Swagger:
 
 ```bash
 set ASPNETCORE_ENVIRONMENT=Development
