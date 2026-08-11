@@ -1,83 +1,74 @@
+# Task_Manager_With_Categories
+
+----------------------------------------------------
+Team Members:
+* Luis Antonio Casillas de la Cruz
+* Alejandro Real Lopez
+* Jesus Eduardo Romero Isiordia
+* Angel Michel Vela Flores
+----------------------------------------------------
 # Challenge 3 — Task Manager with Categories
 
-API en **ASP.NET Core + Entity Framework Core**, con una interfaz visual propia (sin necesidad de Postman ni Swagger para probarla) para organizar tareas por categoría.
+## 📌 Scenario
+A to-do application that allows users to organize activities by category. This challenge introduces relational data, DTO mapping, and filtered queries.
 
-## Qué incluye
+## 🚀 Key Requirements
 
-### Backend (API)
+### 🗂️ Data Models
+Two entities with a **1:N relationship** — one Category contains many Tasks.
+* **Task:** `(Id, Title, Status, CategoryId)`
+* **Category:** `(Id, Name)`
 
-- **Modelos** (`Models/`): `Category` y `TaskItem` (`Id, Title, Description, Status, CategoryId`), con relación 1:N (una categoría tiene muchas tareas) vía `CategoryId`. `Description` es opcional.
-- **DTOs** (`DTOs/`): `TaskDTO` (nunca se expone la entidad cruda; incluye el nombre de la categoría en vez de solo el ID), `CreateTaskDTO`, `CategoryDTO` y `CreateCategoryDTO`.
-- **Servicio** (`Services/TaskService.cs`): antes de guardar o editar una tarea, valida que el `CategoryId` exista en la base de datos; si no existe, regresa un error claro. También arma los filtros del GET.
-- **Controladores**:
-  - `TasksController`: `GET /api/tasks` (con filtros opcionales e independientes por `categoryId` y `status`), `POST /api/tasks`, `PUT /api/tasks/{id}` (editar título/categoría), `PATCH /api/tasks/{id}/toggle-status` (marcar pendiente/completada) y `DELETE /api/tasks/{id}`.
-  - `CategoriesController`: `GET /api/categories` y `POST /api/categories` (crear categorías nuevas, valida que no exista una con el mismo nombre).
-- **Program.cs**: usa **SQLite** (`taskmanager.db`, un archivo que se crea solo en la carpeta del proyecto) para que los datos se queden guardados de verdad, aunque cierres la terminal o reinicies tu compu. Siembra dos categorías de ejemplo ("Trabajo" y "Personal") solo la primera vez que corres el proyecto. Tiene CORS abierto y sirve archivos estáticos desde `wwwroot`.
+### 🔍 Filtered GET Endpoint
+The `GET` endpoint for tasks must support optional query parameters to **filter by `CategoryId` or by `Status`** (Pending / Completed). Both filters should work independently.
 
-### Interfaz visual (`wwwroot/index.html`)
+### ✅ Service Validation
+Before saving a new task, the service must **verify that the provided `CategoryId` actually exists** in the database. Return a meaningful error if it does not.
 
-Página que consume la API directamente, sin frameworks — es HTML, CSS y JavaScript puro. Incluye:
+### 📦 DTO Mapping
+Never expose raw entities. Return a `TaskDTO` that includes the **category name as a string** instead of just the foreign key ID — this is a core API design best practice.
+------------------------------------------------------------------------------------------------------------------------
 
-- Formulario para **agregar tareas**, con título, descripción opcional y categoría.
-- Botón **"+ Categoría"** para crear categorías nuevas al vuelo, sin salir de la página.
-- Filtros por **categoría** y por **estado** (pendiente/completado), funcionando de forma independiente.
-- En cada tarea: casilla para **marcarla como completada**, ícono de **lápiz para editarla** (cambiar el texto y/o la categoría) e ícono de **bote de basura para eliminarla**.
-- Colores automáticos por categoría, para identificarlas de un vistazo.
+## 👥 Equipo de Desarrollo y Asignación de Tareas
 
-## Cómo correrlo
 
-Desde la carpeta del proyecto (donde está `TaskManager.csproj`):
+### 💻 Frontend & Consumo de API
+**Responsable:** Luis Antonio Casillas de la Cruz
+* **Desarrollo de Interfaz:** Creación de la vista principal de la aplicación para visualizar, agregar y organizar tareas por categoría.
+* **Filtros Dinámicos:** Implementación de controles en la UI para consumir el *Filtered GET Endpoint*, permitiendo al usuario filtrar por `CategoryId` o `Status` (Pendiente/Completado).
+* **Manejo de Errores:** Renderizado de alertas en pantalla si falla la validación del servidor (ej. cuando se intenta guardar una categoría inexistente).
+* **Integración DTO:** Consumo y mapeo en el cliente del `TaskDTO` para mostrar los datos limpios (el nombre de la categoría en texto en lugar del ID).
 
-```bash
-dotnet restore
-dotnet run
-```
+### 🗄️ Modelado de Datos & Base de Datos
+**Responsable:** Alejandro Real López
+* **Arquitectura de BD:** Implementación de los *Data Models* (tablas `Task` y `Category`).
+* **Relaciones:** Configuración de las restricciones y llaves foráneas para garantizar la relación **1:N** entre Categorías y Tareas.
+* **Optimización de Consultas:** Desarrollo de las consultas necesarias a la base de datos para el correcto funcionamiento de los filtros de manera eficiente y escalable.
+* **Datos Iniciales:** Creación de scripts o *seeders* para poblar la base de datos con información base.
 
-Cuando veas en la terminal la línea `Now listening on: http://localhost:5000`, abre en tu navegador:
+### ⚙️ Backend, Lógica de Negocios & Soporte Técnico
+**Responsable:** Jesús Eduardo Romero Isiordia
+* **Service Validation:** Programación de la lógica que verifica la existencia del `CategoryId` en la base de datos antes de guardar una nueva tarea, retornando los errores correspondientes.
+* **DTO Mapping:** Configuración de la capa de transformación para evitar la exposición de entidades crudas, asegurando que los controladores devuelvan el `TaskDTO` estructurado.
+* **Soporte de Integración:** Resolución de bloqueos técnicos (troubleshooting) y puente entre el desarrollo del frontend y el esquema de base de datos.
 
-```
-http://localhost:5000/
-```
+### 🔎 Control de Calidad (QA) & Supervisión
+**Responsable:** Ángel Michel Vela Flores
+* **Revisión de Requerimientos:** Supervisión general del avance del equipo para garantizar que se cumplan al 100% las rúbricas y reglas de negocio solicitadas por el profesor, coordinando los esfuerzos de los integrantes.
+* **Pruebas de Backend y Endpoints:** Verificación de que el *Filtered GET Endpoint* funcione independientemente con los parámetros `CategoryId` y `Status`, y comprobación rigurosa de que la API solo devuelva DTOs (sin exponer entidades crudas).
+* **Pruebas de Frontend (UI/UX):** Validación de la interfaz de usuario, asegurando que el consumo de la API, los filtros dinámicos y el manejo de errores operen sin fallos.
+* **Auditoría de Base de Datos:** Confirmación de que las relaciones 1:N estén correctamente establecidas por Alejandro y que la integridad de los datos se mantenga al registrar nuevas tareas.
 
-Ahí se abre directamente la interfaz visual. Deja la terminal abierta mientras la uses — si la cierras, la API se apaga y la página deja de funcionar.
+------------------------------------------------------------------------------------------------------------------------
 
-## Probar la API directamente (opcional)
+## ✅ Estado del Proyecto
 
-Si quieres ver los endpoints "en crudo" (útil para revisar la estructura de las peticiones), puedes activar Swagger:
+El proyecto cumple con los 4 requerimientos clave del reto, y se le agregaron algunas mejoras extra:
 
-```bash
-set ASPNETCORE_ENVIRONMENT=Development
-dotnet run
-```
+* **Modelo `Task` extendido** con un campo `Description` opcional, además de `Id, Title, Status, CategoryId`.
+* **Persistencia real con SQLite** (`taskmanager.db`) — los datos no se pierden al reiniciar el servidor.
+* **CRUD completo de tareas:** crear, editar (título/descripción/categoría), marcar como completada, eliminar.
+* **CRUD de categorías:** además de listarlas, se pueden crear categorías nuevas desde la misma interfaz.
+* **Interfaz visual propia** (`wwwroot/index.html`) que consume la API — se abre directamente en `http://localhost:5000/`, sin depender de Postman o Swagger.
 
-Y entrar a `http://localhost:5000/swagger`.
-
-## Ejemplos con curl
-
-Crear una categoría:
-```bash
-curl -X POST http://localhost:5000/api/categories \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Escuela"}'
-```
-
-Crear una tarea:
-```bash
-curl -X POST http://localhost:5000/api/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Terminar el reporte", "description": "Incluir gráficas del Q2", "categoryId": 1}'
-```
-
-Si mandas un `categoryId` que no existe, la API regresa un 400 con el mensaje de error en vez de romperse.
-
-Filtrar tareas:
-```bash
-curl http://localhost:5000/api/tasks?categoryId=1
-curl http://localhost:5000/api/tasks?status=1
-curl "http://localhost:5000/api/tasks?categoryId=1&status=0"
-```
-(`status`: 0 = Pendiente, 1 = Completado)
-
-## Nota sobre la base de datos
-
-Usa **SQLite**: al correr `dotnet run` por primera vez, se crea automáticamente un archivo `taskmanager.db` dentro de la carpeta del proyecto. Ahí se guardan tus tareas y categorías de verdad — no se borran al cerrar la terminal ni al reiniciar tu compu. Si en algún momento quieres empezar de cero, basta con borrar ese archivo `taskmanager.db` y volver a correr `dotnet run`; se vuelve a crear vacío (con "Trabajo" y "Personal" sembradas de nuevo).
+Para instrucciones de instalación y uso paso a paso, ver [`INSTRUCCIONES.md`](./INSTRUCCIONES.md).
