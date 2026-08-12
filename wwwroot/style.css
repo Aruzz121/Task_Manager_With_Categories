@@ -15,6 +15,15 @@
     --cat-6:#6BA368; /* moss */
   }
 
+  body.dark{
+    --paper:#12172A;
+    --ink:#EDEFF7;
+    --ink-soft:#A8B0CC;
+    --card:#1B2138;
+    --line:#2E3654;
+    --shadow: 0 2px 0 rgba(0,0,0,0.2), 0 10px 24px -14px rgba(0,0,0,0.5);
+  }
+
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
   body{
@@ -25,12 +34,30 @@
     font-family:'Inter', sans-serif;
     min-height:100vh;
     padding:48px 24px 80px;
+    transition:background-color .2s ease, color .2s ease;
   }
 
   .wrap{ max-width:760px; margin:0 auto; }
 
   /* ---- Encabezado tipo pestaña de carpeta ---- */
-  header{ margin-bottom:36px; }
+  header{ margin-bottom:36px; position:relative; }
+
+  .theme-toggle{
+    position:absolute;
+    top:0;
+    right:0;
+    width:38px; height:38px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:var(--card);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease;
+  }
+  .theme-toggle:hover{ transform:translateY(-1px); }
+  .theme-toggle:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
 
   h1{
     font-family:'Fraunces', serif;
@@ -81,6 +108,21 @@
   }
   select:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
 
+  .btn-del-cat{
+    flex:0 0 auto;
+    width:34px; height:34px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:var(--shadow);
+    transition:all .15s ease;
+  }
+  .btn-del-cat:hover{ color:var(--coral); border-color:var(--coral); }
+  .btn-del-cat:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
+
   /* ---- Formulario nueva tarea ---- */
   .new-entry{
     background:var(--card);
@@ -93,7 +135,8 @@
     gap:10px;
     flex-wrap:wrap;
   }
-  .new-entry input[type=text]{
+  .new-entry input[type=text],
+  .new-entry textarea{
     flex:1 1 220px;
     font-family:'Inter', sans-serif;
     font-size:15px;
@@ -103,7 +146,14 @@
     background:var(--paper);
     color:var(--ink);
   }
-  .new-entry input[type=text]:focus-visible{ outline:2px solid var(--coral); outline-offset:1px; }
+  .new-entry textarea{
+    resize:vertical;
+    min-height:41px;
+    line-height:1.4;
+    font-family:'Inter', sans-serif;
+  }
+  .new-entry input[type=text]:focus-visible,
+  .new-entry textarea:focus-visible{ outline:2px solid var(--coral); outline-offset:1px; }
   .new-entry select{ flex:0 0 auto; }
   .btn{
     font-family:'Inter', sans-serif;
@@ -167,6 +217,7 @@
   }
   .check svg{ width:13px; height:13px; }
   .row.done .check{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  body.dark .row.done .check{ background:var(--coral); border-color:var(--coral); color:#fff; }
   .check:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; }
 
   .row-body{ flex:1 1 auto; min-width:0; }
@@ -185,6 +236,30 @@
     color:var(--ink-soft);
     margin:0 0 6px;
     word-break:break-word;
+    white-space:pre-wrap;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+    line-clamp:3;
+    overflow:hidden;
+  }
+  .row-desc.expanded{
+    -webkit-line-clamp:unset;
+    line-clamp:unset;
+    overflow:visible;
+  }
+  .desc-toggle{
+    display:none;
+    background:none;
+    border:none;
+    padding:0;
+    margin:0 0 6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    color:var(--coral);
+    cursor:pointer;
+    text-decoration:underline;
   }
   .row.done .row-desc{ text-decoration:line-through; }
 
@@ -300,7 +375,7 @@
     color:var(--ink-soft);
     margin:0 0 6px;
   }
-  .modal input[type=text], .modal select{
+  .modal input[type=text], .modal select, .modal textarea{
     width:100%;
     font-family:'Inter', sans-serif;
     font-size:15px;
@@ -310,6 +385,11 @@
     background:var(--paper);
     color:var(--ink);
     margin-bottom:16px;
+  }
+  .modal textarea{
+    resize:vertical;
+    min-height:70px;
+    line-height:1.4;
   }
   .modal-actions{ display:flex; gap:8px; justify-content:flex-end; }
   .btn-cancel{
