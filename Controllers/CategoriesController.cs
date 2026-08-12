@@ -47,5 +47,23 @@ namespace TaskManager.Controllers
             var result = new CategoryDTO { Id = category.Id, Name = category.Name };
             return CreatedAtAction(nameof(GetCategories), new { id = result.Id }, result);
         }
+
+        // DELETE /api/categories/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
+                return NotFound(new { message = $"No existe una categoría con Id {id}." });
+
+            var hasTasks = await _context.Tasks.AnyAsync(t => t.CategoryId == id);
+            if (hasTasks)
+                return BadRequest(new { message = "No se puede eliminar la categoría porque tiene tareas asociadas." });
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }
